@@ -194,7 +194,7 @@
 			}
 	}
 	
-	let data = "QNimate",
+	/*let data = "QNimate",
 		password = "mypassword!#!aaa",
 		edata;
 	
@@ -217,7 +217,7 @@
 		cryptozoa.asymmetric.decrypt(edata.data,edata.keys.privateKey).then(data => {
 			console.log("Asymmetric:",data);
 		});
-	})
+	})*/
 	
 	if(typeof(module)!=="undefined") {
 		module.exports = cryptozoa;

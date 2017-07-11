@@ -71,4 +71,6 @@ let data = "QNimate",
 
 # Release History (reverse chronological order)
 
+v0.0.2 2017-07-10 ALPHA: Removed testing code that was accidentally deployed
+
 v0.0.1 2017-07-10 ALPHA: Initial public release
