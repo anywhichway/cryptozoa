@@ -28,13 +28,13 @@ The browser file is `browser\cryptozoa.js`.
 
 # Usage
 
-The focus is on SIMPLE. `utf8` encoding is assumed for encryptable data input and output. No key size options are available.
+The focus is on SIMPLE. `utf8` encoding is assumed for encryptable data input and output. No key size options are available. Currently Unicode is not supported.
 
-`cryptozoa.symmetric.encrypt(data[,keyOrPassword[,iv]])` returns `{key:<a key>,data:<encrypted data>[,iv:<generated iv>}`. `iv`
+`cryptozoa.symmetric.encrypt(data[,keyOrPassword[,iv]])` returns `{key:<a key>,data:<base64 encrypted data>[,iv:<base64 generated iv>}`. `iv`
 will only be populated if no `iv` or `password` was provided in the initial call. Make sure to save it so you can provide it to the decryption function. If a
 `keyOrPassword` is provided, then no `iv` is returned because the same `iv` will be generated when decrypting with just a password.
 
-`cryptozoa.symmetric.decrypt(data,keyOrPassword[,iv]])` returns the decrypted data.
+`cryptozoa.symmetric.decrypt(base64data,keyOrPassword[,base64iv]])` returns the decrypted data.
 
 `cryptozoa.asymmetric.encrypt(data[,publicKey])` returns `{keys:{publicKey:<a key>[,privateKey:<a key>]},data:<encypted data>}`.
 `privateKey` will only be populated if no `publicKey` was provided to do the encryption (an indication keys should be automatically generated). Make sure
@@ -70,6 +70,8 @@ let data = "QNimate",
 ```
 
 # Release History (reverse chronological order)
+
+v0.0.3 2017-07-10 ALPHA: encrypt now returns a base64 encoded string, decrypt consumes a base64 encoded string
 
 v0.0.2 2017-07-10 ALPHA: Removed testing code that was accidentally deployed, added browser file
 

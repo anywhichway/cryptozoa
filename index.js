@@ -2,10 +2,14 @@
 	
 	var crypto,
 		keypair,
+		atob,
+		btoa,
 		isNode = false;
 	if(typeof(module)!=="undefined") {
 		crypto = require("crypto");
 		keypair = require("keypair");
+		atob = require("atob");
+		btoa = require("btoa");
 		isNode = true;
 	} else {
 		crypto = window.crypto || window.msCrypto;
@@ -105,18 +109,22 @@
 			symmetric: { // use only for local encryption, brute force vulnerable for password without iv
 				encrypt: (data,password,iv) => { // key is optional, generates one if necessary, returns the {key:key, iv:vector}
 					const name = (isNode ? "AES-256-CBC" : "AES-CBC");
-					let hasiv = iv,
+					let returniv = iv,
 						keypromise,
 						key;
 					if(password) {
 						key = password;
 						const keybuffer = new Uint8Array(256/8);
 						keybuffer.set(password);
-						iv || (iv = new Uint8Array([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]));
+						if(iv) {
+							iv = new Uint8Array(atob(iv).split("").map(function(c) { return c.charCodeAt(0); }));
+						} else {
+							iv = new Uint8Array([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]);
+						}
 						if(isNode) {
 							const cipher = crypto.createCipheriv(name,keybuffer,iv);
-							data = cipher.update(data,"utf8","hex");
-							data += cipher.final("hex");
+							data = cipher.update(data,"utf8","base64");
+							data += cipher.final("base64");
 							return Promise.resolve({key,data});
 						} else {
 							keypromise = crypto.subtle.importKey(
@@ -128,15 +136,15 @@
 							);
 						}
 					} else {
-						iv || (hasiv = iv = (isNode ? crypto.randomBytes(16) : crypto.getRandomValues(new Uint8Array(16))));
+						iv || (returniv = iv = (isNode ? crypto.randomBytes(16) : crypto.getRandomValues(new Uint8Array(16))));
 						if(isNode) {
 							return new Promise((resolve,reject) => {
 								crypto.randomBytes(256/8,(err,buffer) => {
 									let cipher = crypto.createCipheriv(name,buffer,iv);
-									data = cipher.update(data,"utf8","hex");
-									data += cipher.final("hex");
+									data = cipher.update(data,"utf8","base64");
+									data += cipher.final("base64");
 									const result = {key:buffer,data:data};
-									if(hasiv) result.iv = iv;
+									if(returniv) result.iv = iv;
 									resolve(result);
 								});
 							})
@@ -156,8 +164,8 @@
 					return keypromise.then((key) => {
 						return crypto.subtle.encrypt({name, iv}, key, convertStringToArrayBufferView(data));
 					}).then((data) => {
-						const result = {key,data:new Uint8Array(data)};
-						if(hasiv) result.iv = iv;
+						const result = {key,data:btoa(String.fromCharCode.apply(null, new Uint8Array(data)))}; ;
+						if(returniv) result.iv = btoa(String.fromCharCode.apply(null, new Uint8Array(iv)));
 						return result;
 					});
 				}, 
@@ -170,10 +178,14 @@
 					} else {
 						keybuffer = key;
 					}
-					iv || (iv = new Uint8Array([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]))
+					if(iv) {
+						iv = new Uint8Array(atob(iv).split("").map(function(c) { return c.charCodeAt(0); }));
+					} else {
+						iv = new Uint8Array([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]);
+					}
 					if(isNode) {
 						const cipher = crypto.createDecipheriv(name,keybuffer,iv);
-						data = cipher.update(data,"hex","utf8");
+						data = cipher.update(data,"base64","utf8");
 						data += cipher.final("utf8");
 						return Promise.resolve(data);
 					} else {
@@ -184,7 +196,7 @@
 							    false, //whether the key is extractable (i.e. can be used in exportKey)
 							    ["encrypt", "decrypt"] //can be "encrypt", "decrypt", "wrapKey", or "unwrapKey"
 						).then((key) => {
-							return crypto.subtle.decrypt({name, iv}, key, data);
+							return crypto.subtle.decrypt({name, iv}, key, new Uint8Array(atob(data).split("").map(function(c) { return c.charCodeAt(0); })));
 						}).then((data) => {
 							return convertArrayBufferViewtoString(new Uint8Array(data));
 						});
