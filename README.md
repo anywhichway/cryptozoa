@@ -24,7 +24,7 @@ This is an ALPHA release, things are likely to change.
 
 npm install cryptozoa
 
-The `index.js` file can be loaded directly into a browser.
+The browser file is `browser\cryptozoa.js`.
 
 # Usage
 
@@ -71,6 +71,6 @@ let data = "QNimate",
 
 # Release History (reverse chronological order)
 
-v0.0.2 2017-07-10 ALPHA: Removed testing code that was accidentally deployed
+v0.0.2 2017-07-10 ALPHA: Removed testing code that was accidentally deployed, added browser file
 
 v0.0.1 2017-07-10 ALPHA: Initial public release
