@@ -91,6 +91,8 @@ let data = "QNimate",
 
 # Release History (reverse chronological order)
 
+v0.0.5 2017-07-12 ALPHA: Converted WebCrypt keys to use PEM format.
+
 v0.0.4 2017-07-11 ALPHA: Added `sign` and `verify`.
 
 v0.0.3 2017-07-10 ALPHA: encrypt now returns a base64 encoded string, decrypt consumes a base64 encoded string

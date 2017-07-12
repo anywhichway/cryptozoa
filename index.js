@@ -45,7 +45,7 @@
 					let keys = {};
 					if(isNode) {
 						if(publicKey) {
-							keys.publicKey = key;
+							keys.publicKey = publicKey;
 						} else {
 							const pair = keypair({bits:1024});
 							keys.privateKey = pair.private;
@@ -58,7 +58,7 @@
 						if(publicKey) {
 							keypromise = crypto.subtle.importKey(
 									"spki",
-									publicKey,
+									convertStringToArrayBufferView(publicKey),
 									{name,hash:{name: "SHA-256"}},
 								    false,
 								    ["encrypt"]
@@ -72,9 +72,9 @@
 								    ["encrypt", "decrypt"]
 							).then(k => {
 								return crypto.subtle.exportKey("spki",k.publicKey).then(publicKey => {
-									keys.publicKey = window.btoa(String.fromCharCode.apply(null, new Uint8Array(publicKey)));
+									keys.publicKey = "-----BEGIN RSA PUBLIC KEY-----\n"+window.btoa(String.fromCharCode.apply(null, new Uint8Array(publicKey)))+"\n-----END RSA PUBLIC KEY-----\n";
 									return crypto.subtle.exportKey("pkcs8",k.privateKey).then(privateKey => {
-										keys.privateKey = window.btoa(String.fromCharCode.apply(null, new Uint8Array(privateKey)));
+										keys.privateKey = "-----BEGIN RSA PRIVATE KEY-----\n"+window.btoa(String.fromCharCode.apply(null, new Uint8Array(privateKey)))+"\n-----END RSA PRIVATE KEY-----\n";
 										return k;
 									});
 								})
@@ -92,6 +92,7 @@
 					if(isNode) {
 						return Promise.resolve(crypto.privateDecrypt({key:privateKey,padding:crypto.constants.RSA_PKCS1_OAEP_PADDING},Buffer.from(data)).toString("utf8"))
 					} else {
+						privateKey = privateKey.replace("-----BEGIN RSA PRIVATE KEY-----\n","").replace("\n-----END RSA PRIVATE KEY-----\n","");
 						return crypto.subtle.importKey(
 									"pkcs8",
 									new Uint8Array(window.atob(privateKey).split("").map(function(c) { return c.charCodeAt(0); })), //privateKey,
@@ -126,7 +127,7 @@
 					if(privateKey) {
 						keypromise = crypto.subtle.importKey(
 								"spki",
-								privateKey,
+								convertStringToArrayBufferView(privateKey),
 								{name,hash:{name: "SHA-256"}},
 							    false,
 							    ["sign"]
@@ -137,12 +138,12 @@
 						keypromise = crypto.subtle.generateKey(
 							    {name,modulusLength:1024,publicExponent:new Uint8Array([0x01, 0x00, 0x01]),hash:{name: "SHA-256"}},
 							    true,
-							    ["sign", "verify"]
+							    ["sign","verify"]
 						).then(k => {
 							return crypto.subtle.exportKey("spki",k.publicKey).then(publicKey => {
-								keys.publicKey = window.btoa(String.fromCharCode.apply(null, new Uint8Array(publicKey)));
+								keys.publicKey = "-----BEGIN RSA PUBLIC KEY-----\n"+window.btoa(String.fromCharCode.apply(null, new Uint8Array(publicKey)))+"\n-----END RSA PUBLIC KEY-----\n";;
 								return crypto.subtle.exportKey("pkcs8",k.privateKey).then(privateKey => {
-									keys.privateKey = window.btoa(String.fromCharCode.apply(null, new Uint8Array(privateKey)));
+									keys.privateKey = "-----BEGIN RSA PRIVATE KEY-----\n"+window.btoa(String.fromCharCode.apply(null, new Uint8Array(privateKey)))+"\n-----END RSA PRIVATE KEY-----\n";
 									return k;
 								});
 							})
@@ -264,6 +265,7 @@
 					verify.update(text2verify);
 					return Promise.resolve(verify.verify(publicKey,signature,"base64"));
 				} else {
+					publicKey = publicKey.replace("-----BEGIN RSA PUBLIC KEY-----\n","").replace("\n-----END RSA PUBLIC KEY-----\n","");
 					return crypto.subtle.importKey(
 							"spki",
 							new Uint8Array(window.atob(publicKey).split("").map(function(c) { return c.charCodeAt(0); })),
@@ -299,6 +301,7 @@
 	
 	edata = cryptozoa.asymmetric.encrypt(data);
 	edata.then(edata => {
+		console.log(edata);
 		cryptozoa.asymmetric.decrypt(edata.data,edata.keys.privateKey).then(data => {
 			console.log("Asymmetric:",data);
 		});
