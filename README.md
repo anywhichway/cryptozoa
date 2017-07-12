@@ -8,7 +8,14 @@ Cryptozoa supports:
 
 1) AES-256-CBC symmetric encryption with both externally provided passwords or auto-generated secret keys. Initialization vectors can also be provided or auto-generated.
 
-2) RSA-OAEP 1024 asymmetric encryption with both externally provided key pairs or automatically generated key pairs.
+2) RSA-OAEP SHA-256 1024 asymmetric encryption with both externally provided key pairs or automatically generated key pairs.
+
+3) RSA SHA-256 asymmetric signing with both externally provided key pairs or automatically generated key pairs.
+
+The focus is on SIMPLE. `utf8` encoding is assumed for encryptable data input and output. No key or SHA size options are available. Currently Unicode is not supported (Unicode will be supported over time).
+
+Additionally, the implementation is constrained by the intersection of available options between the [WebCrypto API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API) 
+and the [Node JS Crypto API](https://nodejs.org/api/crypto.html).
 
 If you use async/await style programming, you can encrypt and decrypt in as little as two lines of code:
 
@@ -28,19 +35,25 @@ The browser file is `browser\cryptozoa.js`.
 
 # Usage
 
-The focus is on SIMPLE. `utf8` encoding is assumed for encryptable data input and output. No key size options are available. Currently Unicode is not supported.
 
-`cryptozoa.symmetric.encrypt(data[,keyOrPassword[,iv]])` returns `{key:<a key>,data:<base64 encrypted data>[,iv:<base64 generated iv>}`. `iv`
+`cryptozoa.symmetric.encrypt(data[,keyOrPassword[,iv]])` returns a Promise for `{key:<a key>,data:<base64 encrypted data>[,iv:<base64 generated iv>}`. `iv`
 will only be populated if no `iv` or `password` was provided in the initial call. Make sure to save it so you can provide it to the decryption function. If a
-`keyOrPassword` is provided, then no `iv` is returned because the same `iv` will be generated when decrypting with just a password.
+`keyOrPassword` is provided, then no `iv` is returned because the same `iv` will be generated when decrypting with just a password. Encryption without an `iv`
+is completely dependent on the strength of the password and is suceptible to brute force or dictionary based attacks.
 
-`cryptozoa.symmetric.decrypt(base64data,keyOrPassword[,base64iv]])` returns the decrypted data.
+`cryptozoa.symmetric.decrypt(base64data,keyOrPassword[,base64iv]])` returns a Promise for the decrypted data.
 
-`cryptozoa.asymmetric.encrypt(data[,publicKey])` returns `{keys:{publicKey:<a key>[,privateKey:<a key>]},data:<encypted data>}`.
+`cryptozoa.asymmetric.encrypt(data[,publicKey])` returns a Promise for `{keys:{publicKey:<a key>[,privateKey:<a key>]},data:<encypted data>}`.
 `privateKey` will only be populated if no `publicKey` was provided to do the encryption (an indication keys should be automatically generated). Make sure
 to save them unless you are just using the encryption for transient network communication.
 
 `cryptozoa.asymmetric.decrypt(data,privateKey)` returns the decrypted data.
+
+`cryptozoa.sign(text2sign[,privateKey)` returns a Promise for `{keys:{privateKey:<a key>[,publicKey:<a key>]},signature:<signature>}`. 
+`publicKey` will only be populated if no `privateKey` was provided to do the signing (an indication keys should be automatically generated). Make sure
+to save them unless you are just using the signing for transient network communication.
+
+`cryptozoa.verify(text2verify,publicKey,sigature)` returns a Promise for `true` or `false`.
 
 ```
 let data = "QNimate",
@@ -67,9 +80,18 @@ let data = "QNimate",
 			console.log("Asymmetric:",data);
 		});
 	})
+	
+	cryptozoa.sign(data).then(result => {
+		cryptozoa.verify(data,result.keys.publicKey,result.signature).then(result => {
+			console.log(result);
+		})
+	});
+	
 ```
 
 # Release History (reverse chronological order)
+
+v0.0.4 2017-07-11 ALPHA: Added `sign` and `verify`.
 
 v0.0.3 2017-07-10 ALPHA: encrypt now returns a base64 encoded string, decrypt consumes a base64 encoded string
 
