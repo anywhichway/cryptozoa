@@ -91,6 +91,8 @@ let data = "QNimate",
 
 # Release History (reverse chronological order)
 
+v0.0.6 2017-07-17 ALPHA: Added `'node-wbecrypto-ossl` on server to simplify initial development. Will make permanent if PeculiarVentures endorses production use.
+
 v0.0.5 2017-07-12 ALPHA: Converted WebCrypt keys to use PEM format.
 
 v0.0.4 2017-07-11 ALPHA: Added `sign` and `verify`.
