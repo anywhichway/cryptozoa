@@ -1,0 +1,34 @@
+{
+  "name": "cryptozoa",
+  "version": "0.0.7",
+  "description": "Dead simple isomorphic encryption wrapper around window.crypto and Node crypto.",
+  "engines": {},
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "test": "mocha test/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anywhichway/cryptozoa.git"
+  },
+  "keywords": [
+    "encrypt",
+    "encryption",
+    "cipher",
+    "RSA",
+    "AES"
+  ],
+  "author": "Simon Y. Blackwell <syblackwell@anywhichway.com> (http://www.github.com/anywhichway)",
+  "bugs": {
+    "url": "https://github.com/anywhichway/cryptozoa/issues"
+  },
+  "homepage": "https://github.com/anywhichway/cryptozoa#readme",
+  "dependencies": {
+    "atob": "^2.0.3",
+    "btoa": "^1.1.2",
+    "keypair": "^1.0.1",
+    "node-webcrypto-ossl": "^1.0.30"
+  },
+  "devDependencies": {}
+}
