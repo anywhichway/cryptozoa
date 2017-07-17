@@ -119,12 +119,12 @@
 					}
 				},
 				async sign(algo,key,text2sign) {
-					const sign = nodecrypto.createSign("RSA-SHA256");
+					const sign = nodecrypto.createSign("RSA-SHA1");
 					sign.update(convertArrayBufferViewToString(text2sign));
 					return sign.sign({key:key.pem,padding:nodecrypto.constants.RSA_PKCS1_PSS_PADDING,saltLength:0});
 				},
 				async verify(algo, key, signature, text2verify) {
-					const verify = nodecrypto.createVerify("RSA-SHA256");
+					const verify = nodecrypto.createVerify("RSA-SHA1");
 					verify.update(convertArrayBufferViewToString(text2verify));
 					return verify.verify({key:key.pem,padding:nodecrypto.constants.RSA_PKCS1_PSS_PADDING,saltLength:0},signature);
 				}
@@ -200,7 +200,7 @@
 					keypromise = crypto.subtle.importKey(
 							"spki",
 							decode(privateKey),
-							{name,hash:{name: "SHA-256"}},
+							{name,hash:{name: "SHA-1"}},
 						    false,
 						    ["sign"]
 					).then(publicKey => {
@@ -208,7 +208,7 @@
 					});
 				} else {
 					keypromise = crypto.subtle.generateKey(
-						    {name,modulusLength:1024,publicExponent:new Uint8Array([0x01, 0x00, 0x01]),hash:{name: "SHA-256"}},
+						    {name,modulusLength:1024,publicExponent:new Uint8Array([0x01, 0x00, 0x01]),hash:{name: "SHA-1"}},
 						    true,
 						    ["sign","verify"]
 					).then(k => {
@@ -278,7 +278,7 @@
 					key = await crypto.subtle.importKey(
 						"spki",
 						decode(publicKey),
-						{name, hash: {name: "SHA-256"}},
+						{name, hash: {name: "SHA-1"}},
 					    false,
 					    ["verify"]
 					);

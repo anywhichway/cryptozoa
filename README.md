@@ -91,6 +91,8 @@ let data = "QNimate",
 
 # Release History (reverse chronological order)
 
+v0.0.7 2017-07-17 ALPHA: Reduced `sign` and `verify` to use `SHA1` since anything higher than that does not seem to be compatible between browser and server.
+
 v0.0.6 2017-07-17 ALPHA: Added `'node-wbecrypto-ossl` on server to simplify initial development. Will make permanent if PeculiarVentures endorses production use.
 
 v0.0.5 2017-07-12 ALPHA: Converted WebCrypt keys to use PEM format.
