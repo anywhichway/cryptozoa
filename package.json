@@ -1,6 +1,6 @@
 {
   "name": "cryptozoa",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Dead simple isomorphic encryption wrapper around window.crypto and Node crypto.",
   "engines": {},
   "license": "MIT",

@@ -20,8 +20,8 @@ and the [Node JS Crypto API](https://nodejs.org/api/crypto.html).
 If you use async/await style programming, you can encrypt and decrypt in as little as two lines of code:
 
 ```
-let {data} = await cryptozoa.encrypt("my data","mypassword");
-{data} = await cryptozoa.decrypt(data,"mypassword"); // the final assigment of `data` will equal "my data"
+let {data} = await cryptozoa.symmetric.encrypt("my data","mypassword");
+{data} = await cryptozoa.symmetric.decrypt(data,"mypassword"); // the final assigment of `data` will equal "my data"
 
 ```
 
@@ -108,6 +108,8 @@ it("random password", function(done) {
 ```
 
 # Release History (reverse chronological order)
+
+v0.0.10 2017-12-06 BETA: Minor README.md corrections.
 
 v0.0.9 2017-12-06 BETA: Improved unit tests and docs.
 
