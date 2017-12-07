@@ -13,6 +13,8 @@ if(typeof(window)==="undefined") {
 describe("Test",function() {
 	it("symmetric", function(done) {
 		cryptozoa.symmetric.encrypt("my data").then(edata => {
+			expect(edata.data).to.not.equal("my data");
+			expect(edata.password.length).to.equal(32);
 			cryptozoa.symmetric.decrypt(edata.data,edata.password,edata.iv).then(decrypted => {
 				expect(decrypted).to.equal("my data");
 				done();
@@ -22,6 +24,8 @@ describe("Test",function() {
 	it("symmetric with password",function(done) {
 		cryptozoa.symmetric.encrypt("my data","mypassword").then(edata => {
 			expect(edata.password.trim()).to.equal("mypassword");
+			expect(edata.password.length).to.equal(32);
+			expect(edata.data).to.not.equal("my data");
 			cryptozoa.symmetric.decrypt(edata.data,edata.password).then(decrypted => {
 				expect(decrypted).to.equal("my data");
 				done();
@@ -30,6 +34,7 @@ describe("Test",function() {
 	});
 	it("asymmetric",function(done) {
 		cryptozoa.asymmetric.encrypt("my data").then(edata => {
+			expect(edata.data).to.not.equal("my data");
 			cryptozoa.asymmetric.decrypt(edata.data,edata.keys.privateKey).then(decrypted => {
 				expect(decrypted).to.equal("my data");
 				done();
