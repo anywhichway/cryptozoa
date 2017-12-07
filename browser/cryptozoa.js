@@ -141,7 +141,7 @@
 	
 	const cryptozoa = {
 			asymmetric: {
-				encrypt: async (data,password,publicKey) => {
+				encrypt: async (data,publicKey) => {
 					const name = "RSA-OAEP";
 					let keys = {};
 					!publicKey || (keys.publicKey=publicKey);
@@ -165,12 +165,9 @@
 						keys.publicKey = encode(await crypto.subtle.exportKey("spki",keys.publicKey));
 						keys.privateKey = encode(await crypto.subtle.exportKey("pkcs8",keys.privateKey));
 					}
-					const iv = encode(new Uint8Array([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15])),
-						encrypted = await cryptozoa.symmetric.encrypt(data,password,iv);
-					password = encode(await crypto.subtle.encrypt({name}, publicKey, convertStringToArrayBufferView(encrypted.password)));
-					return {keys,password,data:encrypted.data};
+					return {keys,data:await crypto.subtle.encrypt({name}, publicKey, convertStringToArrayBufferView(data))};
 				},
-				decrypt: async (data,password,privateKey) => {
+				decrypt: async (data,privateKey) => {
 					const name ="RSA-OAEP";
 					if(typeof(privateKey)==="string") {
 						privateKey = await crypto.subtle.importKey(
@@ -182,8 +179,7 @@
 						);
 					}
 					// as rediculous as the nested decode(encode()) seem, they are absolutely necessary!
-					password = convertArrayBufferViewToString(decode(encode(await crypto.subtle.decrypt({name}, privateKey,decode(password)))));
-					return await cryptozoa.symmetric.decrypt(data,password);
+					return convertArrayBufferViewToString(decode(encode(await crypto.subtle.decrypt({name}, privateKey,data))));
 				}
 			},
 			randomBytes: async (count) => {
@@ -285,56 +281,11 @@
 				return await crypto.subtle.verify({name,saltLength:0},key,decode(signature),convertStringToArrayBufferView(text2verify));
 			}
 	}
-	/*
-	let data = "QNimate",
-		password = "mypassword!#!aaa",
-		edata;
-	
-	edata = cryptozoa.symmetric.encrypt(data,password);
-	edata.then(edata => {
-		cryptozoa.symmetric.decrypt(edata.data,edata.password,edata.iv).then(data => {
-			console.log("Symmetric, pwd:",data);
-		});
-	})
-	
-	edata = cryptozoa.symmetric.encrypt(data);
-	edata.then(edata => {
-		cryptozoa.symmetric.decrypt(edata.data,edata.password,edata.iv).then(data => {
-			console.log("Symmetric, no pwd:",data);
-		});
-	})
-	
-	edata = cryptozoa.asymmetric.encrypt(data,password);
-	edata.then(edata => {
-		cryptozoa.asymmetric.decrypt(edata.data,edata.password,edata.keys.privateKey).then(data => {
-			console.log("Asymmetric, pwd:",data);
-		});
-	})
-	
-	edata = cryptozoa.asymmetric.encrypt(data);
-	edata.then(edata => {
-		cryptozoa.asymmetric.decrypt(edata.data,edata.password,edata.keys.privateKey).then(data => {
-			console.log("Asymmetric, no pwd:",data);
-		});
-	})
-
-	cryptozoa.sign(data).then(result => {
-		cryptozoa.verify(data,result.keys.publicKey,result.signature).then(result => {
-			console.log(result);
-		})
-	});
-	
-	cryptozoa.randomPassword().then(result => {
-		console.log(result);
-	});
-	*/
-	
+		
 	
 	if(typeof(module)!=="undefined") {
 		module.exports = cryptozoa;
+	} else {
+		this.cryptozoa = cryptozoa;
 	}
-	if(typeof(window)!=="undefined") {
-		window.cryptozoa = cryptozoa;
-	}
-
 }).call(this);
