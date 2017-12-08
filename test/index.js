@@ -41,6 +41,19 @@ describe("Test",function() {
 			});
 		})
 	});
+	it("asymmetric with password",function(done) {
+		cryptozoa.asymmetric.encrypt("").then(edata => { // generate keys by encryting nothing
+			const password = edata.keys.publicKey,
+				privateKey =  edata.keys.privateKey;
+			cryptozoa.asymmetric.encrypt("my data",password).then(edata => {
+				expect(edata.data).to.not.equal("my data");
+				cryptozoa.asymmetric.decrypt(edata.data,privateKey).then(decrypted => {
+					expect(decrypted).to.equal("my data");
+					done();
+				});
+			});
+		})
+	});
 	it("sign",function(done) {
 		cryptozoa.sign("my data").then(result => {
 			cryptozoa.verify("my data",result.keys.publicKey,result.signature).then(result => {
