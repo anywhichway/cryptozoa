@@ -165,7 +165,7 @@
 						keys.publicKey = encode(await crypto.subtle.exportKey("spki",keys.publicKey));
 						keys.privateKey = encode(await crypto.subtle.exportKey("pkcs8",keys.privateKey));
 					}
-					return {keys,data:await crypto.subtle.encrypt({name}, publicKey, convertStringToArrayBufferView(data))};
+					return {keys,data:encode(await crypto.subtle.encrypt({name}, publicKey, convertStringToArrayBufferView(data)))};
 				},
 				decrypt: async (data,privateKey) => {
 					const name ="RSA-OAEP";
@@ -179,7 +179,7 @@
 						);
 					}
 					// as rediculous as the nested decode(encode()) seem, they are absolutely necessary!
-					return convertArrayBufferViewToString(decode(encode(await crypto.subtle.decrypt({name}, privateKey,data))));
+					return convertArrayBufferViewToString(decode(encode(await crypto.subtle.decrypt({name}, privateKey,decode(data)))));
 				}
 			},
 			randomBytes: async (count) => {

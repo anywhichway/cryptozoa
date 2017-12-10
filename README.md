@@ -122,6 +122,8 @@ it("random password", function(done) {
 
 # Release History (reverse chronological order)
 
+v0.0.11 2017-12-10 BETA: symmetric and asymmetric now bot consume and return strings.
+
 v0.0.10 2017-12-06 BETA: Minor README.md corrections.
 
 v0.0.9 2017-12-06 BETA: Improved unit tests and docs.
