@@ -11,61 +11,46 @@ if(typeof(window)==="undefined") {
 }
 
 describe("Test",function() {
-	it("symmetric", function(done) {
-		cryptozoa.symmetric.encrypt("my data").then(edata => {
-			expect(edata.data).to.not.equal("my data");
-			expect(edata.password.length).to.equal(32);
-			cryptozoa.symmetric.decrypt(edata.data,edata.password,edata.iv).then(decrypted => {
-				expect(decrypted).to.equal("my data");
-				done();
-			});
-		})
+	it("symmetric", async function() {
+		const {password,data,iv} = await cryptozoa.symmetric.encrypt("my data");
+		expect(data).to.not.equal("my data");
+		expect(password.length).to.equal(32);
+		const decrypted = await cryptozoa.symmetric.decrypt(data,password,iv);
+		expect(decrypted).to.equal("my data");
 	});
-	it("symmetric with password",function(done) {
-		cryptozoa.symmetric.encrypt("my data","mypassword").then(edata => {
-			expect(edata.password.trim()).to.equal("mypassword");
-			expect(edata.password.length).to.equal(32);
-			expect(edata.data).to.not.equal("my data");
-			cryptozoa.symmetric.decrypt(edata.data,edata.password).then(decrypted => {
-				expect(decrypted).to.equal("my data");
-				done();
-			})
-		});
+	
+	it("symmetric with password",async function() {
+		const {password,data} = await cryptozoa.symmetric.encrypt("my data","mypassword");
+		expect(password.trim()).to.equal("mypassword"); // passwords get padded
+		expect(password.length).to.equal(32);
+		expect(data).to.not.equal("my data");
+		const decrypted = await cryptozoa.symmetric.decrypt(data,password);
+		expect(decrypted).to.equal("my data");
 	});
-	it("asymmetric",function(done) {
-		cryptozoa.asymmetric.encrypt("my data").then(edata => {
-			expect(edata.data).to.not.equal("my data");
-			cryptozoa.asymmetric.decrypt(edata.data,edata.keys.privateKey).then(decrypted => {
-				expect(decrypted).to.equal("my data");
-				done();
-			});
-		})
+	
+	it("asymmetric",async function() {
+		const {data,keys:{privateKey}} = await cryptozoa.asymmetric.encrypt("my data");
+		expect(data).to.not.equal("my data");
+		const decrypted = await cryptozoa.asymmetric.decrypt(data,privateKey);
+		expect(decrypted).to.equal("my data");
 	});
-	it("asymmetric with password",function(done) {
-		cryptozoa.asymmetric.encrypt("").then(edata => { // generate keys by encryting nothing
-			const password = edata.keys.publicKey,
-				privateKey =  edata.keys.privateKey;
-			cryptozoa.asymmetric.encrypt("my data",password).then(edata => {
-				expect(edata.data).to.not.equal("my data");
-				cryptozoa.asymmetric.decrypt(edata.data,privateKey).then(decrypted => {
-					expect(decrypted).to.equal("my data");
-					done();
-				});
-			});
-		})
+	
+	it("asymmetric with password",async function() {
+		const {keys:{publicKey,privateKey}} = await cryptozoa.asymmetric.encrypt(""), // generate keys by encryting nothing
+				edata = await cryptozoa.asymmetric.encrypt("my data",publicKey);
+		expect(edata.data).to.not.equal("my data");
+		const decrypted = await cryptozoa.asymmetric.decrypt(edata.data,privateKey);
+		expect(decrypted).to.equal("my data");
 	});
-	it("sign",function(done) {
-		cryptozoa.sign("my data").then(result => {
-			cryptozoa.verify("my data",result.keys.publicKey,result.signature).then(result => {
-				expect(result).to.equal(true);
-				done();
-			})
-		});
+	
+	it("sign",async function() {
+		const {keys:{publicKey},signature} = await cryptozoa.sign("my data"),
+			verified = await cryptozoa.verify("my data",publicKey,signature);
+		expect(verified).to.equal(true);
 	});
-	it("random password", function(done) {
-		cryptozoa.randomPassword().then(result => {
-			expect(result.length).to.equal(8);
-			done();
-		});
+	
+	it("random password", async function() {
+		const pwd = await cryptozoa.randomPassword();
+		expect(pwd.length).to.equal(8);
 	});
 });

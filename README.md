@@ -37,92 +37,129 @@ The browser file is `browser\cryptozoa.js`.
 Note: All functions currently take an optional, unused `options` argument to support enhances encryption control in the future.
 
 
-`cryptozoa.symmetric.encrypt(data[,keyOrPassword[,iv[,options={}]])` returns a Promise for `{password:<string>,data:<base64 encrypted data>[,iv:<base64 generated iv>}`. `iv`
-will only be populated if no `iv` or `password` was provided in the initial call. Make sure to save it so you can provide it to the decryption function. If a
-`keyOrPassword` is provided, then no `iv` is returned because the same `iv` will be generated when decrypting with just a password. Encryption without an `iv`
-is completely dependent on the strength of the password and is suceptible to brute force or dictionary based attacks. The encryption is `AES-CBC`. If a password is generated it is a random 32 characters. If 
-a password is provided and is less than 32 characters, it is padded with blanks to 32 characters. If no `iv` is provided, it is a random 16 bytes.
+`async cryptozoa.symmetric.encrypt(data[,string keyOrPassword[,iv[,options={}]])` 
 
-`cryptozoa.symmetric.decrypt(base64data,keyOrPassword[,base64iv[,options={}]])` returns a Promise for the decrypted data.
+* Returns a Promise for 
 
-`cryptozoa.asymmetric.encrypt(data[,publicKey[,options={}]])` returns a Promise for `{keys:{publicKey:<a key>[,privateKey:<a key>]},data:<encypted data>}`.
-`privateKey` will only be populated if no `publicKey` was provided to do the encryption (an indication keys should be automatically generated). The generated keys are `RSA-OAEP` `SHA-256` modulus `1024` in `spki` and `pkcs8` format. Make sure to save them unless you are just using the encryption for transient network communication. You may wish to encrypt the privateKey using symmetric encyrption 
-with a strong password.
+```javascript
+{
+	password:string password,
+	data:<base64 encrypted data>
+	[,iv:<base64 generated iv>
+}
+```
 
-`cryptozoa.asymmetric.decrypt(data,privateKey[,options={}])` returns a Prpomise for the decrypted data.
+* `iv` will only be populated if no `iv` or `keyOrPassword` was provided in the initial call. Make sure to save it so you can provide it to the decryption function. No `iv` is returned because the same `iv` will be generated when decrypting with just a password. Encryption without an `iv` is completely dependent on the strength of the password and is suceptible to brute force or dictionary based attacks. 
 
-`cryptozoa.sign(text2sign[,privateKey)` returns a Promise for `{keys:{privateKey:<a key>[,publicKey:<a key>]},signature:<signature>}`. 
-`publicKey` will only be populated if no `privateKey` was provided to do the signing (an indication keys should be automatically generated). The generated keys are `RSASSA-PKCS1-v1_5` `SHA-1` modulus `1024` in `spki` and `pkcs8` format. Make sure to save them unless you are just using the encryption for transient network communication. Make sure to save them unless you are just using the signing for transient network communication.
+* The encryption is `AES-CBC`. 
 
-`cryptozoa.verify(text2verify,publicKey,sigature[,options={}])` returns a Promise for `true` or `false`.
+* If a password is generated it is a random 32 characters. If a password is provided and is less than 32 characters, it is padded with blanks to 32 characters. If no `iv` is provided, it is a random 16 bytes.
 
-`cryptozoa.randomPassword([options={})` - generates and 8 character mixed case and number random password.
+`async cryptozoa.symmetric.decrypt(base64data,string keyOrPassword[,base64iv[,options={}]])` 
+
+* Returns a Promise for the decrypted data.
+
+`async cryptozoa.asymmetric.encrypt(data[,publicKey[,options={}]])`
+
+* Returns a Promise for 
+
+```javascript
+{
+	keys: 
+	{
+		publicKey:<a key>
+		[,privateKey:<a key>]
+	},
+	data:<base64data>
+}
+```
+
+* `privateKey` will only be populated if no `publicKey` was provided to do the encryption (an indication keys should be automatically generated). The generated keys are `RSA-OAEP` `SHA-256` modulus `1024` in `spki` and `pkcs8` format. Make sure to save them unless you are just using the encryption for transient network communication. You may wish to encrypt the privateKey using symmetric encyrption with a strong password.
+
+`async cryptozoa.asymmetric.decrypt(data,privateKey[,options={}])` 
+
+* Returns a Prpomise for the `utf-8` decrypted data string.
+
+`async cryptozoa.sign(string text2sign[,privateKey)` 
+
+* Returns a Promise for 
+
+```javascript
+{
+	keys:
+	{
+		privateKey:<a key>
+		[,publicKey:<a key>]
+	},
+	signature:<signature>
+}
+```
+
+`publicKey` will only be populated if no `privateKey` was provided to do the signing (an indication keys should be automatically generated). The generated keys are `RSASSA-PKCS1-v1_5` `SHA-1` modulus `1024` in `spki` and `pkcs8` format. Make sure to save them unless you are just using the encryption for transient network communication.
+
+`async cryptozoa.verify(string text2verify,publicKey,sigature[,options={}])` 
+
+* Returns a Promise for `true` or `false`.
+
+`async cryptozoa.randomPassword([options={}])`
+
+* Returns a {romise for an 8 character mixed case and number random password.
+
+# Examples
 
 By way of example there are unit tests below:
 
 ```javascript
-it("symmetric", function(done) {
-	cryptozoa.symmetric.encrypt("my data").then(edata => {
-		expect(edata.data).to.not.equal("my data");
-		expect(edata.password.length).to.equal(32);
-		cryptozoa.symmetric.decrypt(edata.data,edata.password,edata.iv).then(decrypted => {
-			expect(decrypted).to.equal("my data");
-			done();
-		});
-	})
+it("symmetric", async function() {
+	const {password,data,iv} = await cryptozoa.symmetric.encrypt("my data");
+	expect(data).to.not.equal("my data");
+	expect(password.length).to.equal(32);
+	const decrypted = await cryptozoa.symmetric.decrypt(data,password,iv);
+	expect(decrypted).to.equal("my data");
 });
-it("symmetric with password",function(done) {
-	cryptozoa.symmetric.encrypt("my data","mypassword").then(edata => {
-		expect(edata.password.trim()).to.equal("mypassword");
-		expect(edata.password.length).to.equal(32);
-		expect(edata.data).to.not.equal("my data");
-		cryptozoa.symmetric.decrypt(edata.data,edata.password).then(decrypted => {
-			expect(decrypted).to.equal("my data");
-			done();
-		})
-	});
+
+it("symmetric with password",async function() {
+	const {password,data} = await cryptozoa.symmetric.encrypt("my data","mypassword");
+	expect(password.trim()).to.equal("mypassword"); // passwords get padded
+	expect(password.length).to.equal(32);
+	expect(data).to.not.equal("my data");
+	const decrypted = await cryptozoa.symmetric.decrypt(data,password);
+	expect(decrypted).to.equal("my data");
 });
-it("asymmetric",function(done) {
-	cryptozoa.asymmetric.encrypt("my data").then(edata => {
-		expect(edata.data).to.not.equal("my data");
-		cryptozoa.asymmetric.decrypt(edata.data,edata.keys.privateKey).then(decrypted => {
-			expect(decrypted).to.equal("my data");
-			done();
-		});
-	})
+
+it("asymmetric",async function() {
+	const {data,keys:{privateKey}} = await cryptozoa.asymmetric.encrypt("my data");
+	expect(data).to.not.equal("my data");
+	const decrypted = await cryptozoa.asymmetric.decrypt(data,privateKey);
+	expect(decrypted).to.equal("my data");
 });
-it("asymmetric with password",function(done) {
-	cryptozoa.asymmetric.encrypt("").then(edata => { // generate keys by encryting nothing
-		const password = edata.keys.publicKey,
-			privateKey =  edata.keys.privateKey;
-		cryptozoa.asymmetric.encrypt("my data",password).then(edata => {
-			expect(edata.data).to.not.equal("my data");
-			cryptozoa.asymmetric.decrypt(edata.data,privateKey).then(decrypted => {
-				expect(decrypted).to.equal("my data");
-				done();
-			});
-		});
-	})
+
+it("asymmetric with password",async function() {
+	// generate keys by encryting nothing
+	const {keys:{publicKey,privateKey}} = await cryptozoa.asymmetric.encrypt(""), 
+			edata = await cryptozoa.asymmetric.encrypt("my data",publicKey);
+	expect(edata.data).to.not.equal("my data");
+	const decrypted = await cryptozoa.asymmetric.decrypt(edata.data,privateKey);
+	expect(decrypted).to.equal("my data");
 });
-it("sign",function(done) {
-	cryptozoa.sign("my data").then(result => {
-		cryptozoa.verify("my data",result.keys.publicKey,result.signature).then(result => {
-			expect(result).to.equal(true);
-			done();
-		})
-	});
+
+it("sign",async function() {
+	const {keys:{publicKey},signature} = await cryptozoa.sign("my data"),
+		verified = await cryptozoa.verify("my data",publicKey,signature);
+	expect(verified).to.equal(true);
 });
-it("random password", function(done) {
-	cryptozoa.randomPassword().then(result => {
-		expect(result.length).to.equal(8);
-		done();
-	});
+
+it("random password", async function() {
+	const pwd = await cryptozoa.randomPassword();
+	expect(pwd.length).to.equal(8);
 });
 ```
 
 # Release History (reverse chronological order)
 
-v0.0.11 2017-12-10 BETA: symmetric and asymmetric now bot consume and return strings.
+v1.0.0 2019-02-12 Improved documentation. Functions explictly tagged as `async`.
+
+v0.0.11 2017-12-10 BETA: symmetric and asymmetric now both consume and return strings.
 
 v0.0.10 2017-12-06 BETA: Minor README.md corrections.
 
